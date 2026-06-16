@@ -4,10 +4,11 @@ import NavBar from "@/components/navbar/NavBar.vue";
 import {onMounted} from "vue";
 import api from "@/js/http/api.js";
 import {useUserStore} from "@/stores/user.js";
-import {useRouter} from "vue-router";
+import {useRouter, useRoute} from "vue-router";
 
 const user = useUserStore()
 const router = useRouter()
+const route = useRoute()
 
 onMounted(async () => {
   try{
@@ -22,7 +23,7 @@ onMounted(async () => {
   }finally {
     user.setHasPulledUserInfo(true)
 
-    if (router.meta.needLogin && !user.isLogin){
+    if (route.meta.needLogin && !user.isLogin){
         await router.replace({
         name:'user-account-login-index',
       })

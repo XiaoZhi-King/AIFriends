@@ -41,7 +41,10 @@ class GetListCharacterView(APIView):
                 },
                 'characters' : characters
             })
-        except:
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f'[DEBUG] GetSingleCharacterView 异常: {e}')
             return Response({
                 'result' : '系统异常，请稍后再试'
             })

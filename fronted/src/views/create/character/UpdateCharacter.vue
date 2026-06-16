@@ -9,12 +9,16 @@ import {base64ToFile} from "@/js/utils/base64_to_file.js";
 import api from "@/js/http/api.js";
 import {useRoute, useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user.js";
+import Voice from "@/views/create/character/components/Voice.vue";
 
 const user = useUserStore()
 const router = useRouter()
 const route = useRoute()
 const characterId = route.params.character_id
 const character = ref(null)
+
+const voices = ref([])
+const curVoiceId = ref(null)
 
 onMounted(async ()=>{
   try{
@@ -23,17 +27,23 @@ onMounted(async ()=>{
         character_id: characterId,
       }
     })
+    console.log('[DEBUG] get_single 响应:', res.data)
     const data = res.data
     if (data.result === 'success') {
       character.value = data.character
+      voices.value = data.voices
+      curVoiceId.value = data.character.voice_id
+    } else {
+      console.error('[DEBUG] get_single 业务失败:', data)
     }
   }catch(err){
-
+    console.error('[DEBUG] get_single 请求异常:', err)
   }
 })
 
 const photoRef = useTemplateRef('photo-ref')
 const nameRef = useTemplateRef('name-ref')
+const voiceRef = useTemplateRef('voice-ref')
 const profileRef = useTemplateRef('profile-ref')
 const backgroundImageRef = useTemplateRef('background-image-ref')
 const errorMessage = ref('')
@@ -41,6 +51,7 @@ const errorMessage = ref('')
 async function handleUpdate(){
   const photo = photoRef.value.myPhoto
   const name = nameRef.value?.myName.trim()
+  const voice = voiceRef.value.myVoice
   const profile = profileRef.value.myProfile?.trim()
   const backgroundImage = backgroundImageRef.value.myBackgroundImage
   errorMessage.value = ''
@@ -48,7 +59,9 @@ async function handleUpdate(){
     errorMessage.value = '头像不能为空,请上传头像'
   }else if (!name){
     errorMessage.value = '名字不能为空,请输入名字'
-  }else if (!profile){
+  }else if (!voice){
+    errorMessage.value = '音色不能为空,请选择音色'
+  } else if (!profile){
     errorMessage.value = '角色介绍不能为空,请输入角色介绍'
   }else if (!backgroundImage){
     errorMessage.value = '背景图片不能为空,请上传背景图片'
@@ -56,6 +69,7 @@ async function handleUpdate(){
     const formData = new FormData()
     formData.append('character_id', characterId)
     formData.append('name', name)
+    formData.append('voice_id', voice)
     formData.append('profile', profile)
     if (photo !== character.value.photo){
       formData.append('photo',base64ToFile(photo, 'photo.png'))
@@ -90,6 +104,7 @@ async function handleUpdate(){
         <h3 class="text-lg font-blod my-4">更新角色</h3>
       <Photo ref="photo-ref" :photo="character.photo"/>
       <Name ref="name-ref" :name="character.name"/>
+      <Voice ref="voice-ref" :voices="voices" :curVoiceId="curVoiceId"/>
       <Profile ref="profile-ref" :profile="character.profile"/>
       <BackgroundImage ref= "background-image-ref" :background-image="character.background_image"/>
 
